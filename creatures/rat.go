@@ -6,18 +6,18 @@ type Rat struct {
 	Description string `json:"description,omitempty"`
 }
 
-func (p *Rat) GetRune() rune {
-	return p.Rune
+func (r *Rat) GetRune() rune {
+	return r.Rune
 }
 
-func (p *Rat) GetHealth() int {
-	return p.Health
+func (r *Rat) GetHealth() int {
+	return r.Health
 }
 
-func (p *Rat) GetDescription() string {
-	return p.Description
+func (r *Rat) GetDescription() string {
+	return r.Description
 }
 
-func (p *Rat) TakeDamage(dmg int) {
-	p.Health -= dmg
+func (r *Rat) TakeDamage(dmg int) {
+	r.Health -= dmg
 }
