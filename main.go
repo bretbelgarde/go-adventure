@@ -5,7 +5,8 @@ import (
 	"os"
 	"time"
 
-	"bretbelgarde.com/adventure/creatures"
+	//"bretbelgarde.com/adventure/creatures"
+	"bretbelgarde.com/adventure/player"
 	ut "bretbelgarde.com/adventure/utils"
 	tc "github.com/gdamore/tcell/v2"
 	//rw "github.com/mattn/go-runewidth"
@@ -41,7 +42,6 @@ func main() {
 	var msg string
 
 	debug := false
-	player := player{rune: '@', x: 3, y: 3, health: 10, level: 1}
 
 	mapp := [9][9]rune{
 		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
@@ -95,9 +95,9 @@ func main() {
 		Foreground(tc.ColorBurlyWood).
 		Background(tc.ColorBlack)
 
-	brown := tc.StyleDefault.
-		Foreground(tc.ColorBrown).
-		Background(tc.ColorBlack)
+	/* brown := tc.StyleDefault.
+	Foreground(tc.ColorBrown).
+	Background(tc.ColorBlack) */
 
 	s.SetStyle(tc.StyleDefault.
 		Foreground(tc.ColorWhite).
@@ -105,19 +105,22 @@ func main() {
 	s.EnableMouse()
 	s.Clear()
 
-	a := &Actors{}
+	player := NewActor(3, 3, 1, white, &player.Player{Rune: '@', Health: 10, Description: "Player"})
+
+	/* a := &Actors{}
+
 	a.Actors = append(a.Actors, NewActor(4, 3, 1, brown, &creatures.Pig{Rune: 'p', Health: 10, Description: "Pig 1"}))
 	a.Actors = append(a.Actors, NewActor(5, 2, 1, brown, &creatures.Pig{Rune: 'p', Health: 10, Description: "Pig 2"}))
 
 	a.Actors = append(a.Actors, NewActor(4, 3, 2, brown, &creatures.Rat{Rune: 'r', Health: 10, Description: "Rat 1"}))
 	a.Actors = append(a.Actors, NewActor(5, 2, 2, brown, &creatures.Rat{Rune: 'r', Health: 10, Description: "Rat 2"}))
 	a.Actors = append(a.Actors, NewActor(5, 4, 2, brown, &creatures.Rat{Rune: 'r', Health: 10, Description: "Rat 3"}))
-	a.Actors = append(a.Actors, NewActor(6, 3, 2, brown, &creatures.Rat{Rune: 'r', Health: 10, Description: "Rat 4"}))
+	a.Actors = append(a.Actors, NewActor(6, 3, 2, brown, &creatures.Rat{Rune: 'r', Health: 10, Description: "Rat 4"})) */
 
 	quit := make(chan struct{})
 	go func() {
 		for {
-			x, y := s.Size()
+			//x, y := s.Size()
 			ev := s.PollEvent()
 
 			switch ev := ev.(type) {
@@ -126,7 +129,7 @@ func main() {
 				case tc.KeyRune:
 					switch ev.Rune() {
 					case ':':
-						g := current[player.x-1][player.y-1]
+						g := current[player.X-1][player.Y-1]
 						if g == '.' {
 							msg = "You see some dirt."
 						} else if g == '>' {
@@ -135,115 +138,51 @@ func main() {
 							msg = "You see stairs up"
 						}
 					case '>':
-						g := current[player.x-1][player.y-1]
+						g := current[player.X-1][player.Y-1]
 						if g == '>' {
 							level++
 							s.Clear()
 						}
 					case '<':
-						g := current[player.x-1][player.y-1]
+						g := current[player.X-1][player.Y-1]
 						if g == '<' {
 							level--
 							s.Clear()
 						}
 					case 'h':
-						r, _, _, _ := s.GetContent(player.x-1, player.y)
-						if r == '#' {
-							// Do a thing
-						} else if player.x-1 >= 0 {
-							player.x--
-						}
-
-						for i := range a.Actors {
-							a.Actors[i].Move(level, s)
-						}
+						player.Move(-1, 0, s)
 					case 'l':
-						r, _, _, _ := s.GetContent(player.x+1, player.y)
-						if r == '#' {
-							// Do a thing
-						} else if player.x+1 < x {
-							player.x++
-						}
-
-						for i := range a.Actors {
-							a.Actors[i].Move(level, s)
-						}
+						player.Move(1, 0, s)
 					case 'k':
-						r, _, _, _ := s.GetContent(player.x, player.y-1)
-						if r == '#' {
-							// Do a thing
-						} else if player.y-1 >= 0 {
-							player.y--
-						}
-
-						for i := range a.Actors {
-							a.Actors[i].Move(level, s)
-						}
+						player.Move(0, -1, s)
 					case 'j':
-						r, _, _, _ := s.GetContent(player.x, player.y+1)
-						if r == '#' {
-							// Do a thing
-						} else if player.y+1 < y {
-							player.y++
-						}
-
-						for i := range a.Actors {
-							a.Actors[i].Move(level, s)
-						}
+						player.Move(0, 1, s)
 					}
 
 				case tc.KeyEscape, tc.KeyEnter:
 					close(quit)
 					return
+
 				case tc.KeyRight:
-					r, _, _, _ := s.GetContent(player.x+1, player.y)
-					if r == '#' {
-						// Do a thing
-					} else if player.x+1 < x {
-						player.x++
-					}
+					player.Move(1, 0, s)
 
-					for i := range a.Actors {
-						a.Actors[i].Move(level, s)
-					}
 				case tc.KeyLeft:
-					r, _, _, _ := s.GetContent(player.x-1, player.y)
-					if r == '#' {
-						// Do a thing
-					} else if player.x-1 >= 0 {
-						player.x--
-					}
-					for i := range a.Actors {
-						a.Actors[i].Move(level, s)
-					}
+					player.Move(-1, 0, s)
+
 				case tc.KeyUp:
-					r, _, _, _ := s.GetContent(player.x, player.y-1)
-					if r == '#' {
-						// Do a thing
-					} else if player.y-1 >= 0 {
-						player.y--
-					}
+					player.Move(0, -1, s)
 
-					for i := range a.Actors {
-						a.Actors[i].Move(level, s)
-					}
 				case tc.KeyDown:
-					r, _, _, _ := s.GetContent(player.x, player.y+1)
-					if r == '#' {
-						// Do a thing
-					} else if player.y+1 < y {
-						player.y++
-					}
+					player.Move(0, 1, s)
 
-					for i := range a.Actors {
-						a.Actors[i].Move(level, s)
-					}
 				case tc.KeyCtrlD:
 					debug = !debug
+
 				case tc.KeyCtrlL:
 					s.Clear()
 					s.Sync()
 				}
+
 			case *tc.EventResize:
 				s.Sync()
 			}
@@ -259,10 +198,10 @@ loop:
 		}
 		s.Clear()
 
-		dbg := fmt.Sprintf("player x: %d y: %d", player.x, player.y)
+		dbg := fmt.Sprintf("player x: %d y: %d", player.X, player.Y)
 		if debug {
 			var yy int
-			if player.y == 0 {
+			if player.Y == 0 {
 				_, yy = s.Size()
 				yy--
 			} else {
@@ -294,11 +233,7 @@ loop:
 
 		ut.EmitStr(s, 0, 0, white, msg)
 
-		for i := range a.Actors {
-			a.Actors[i].Draw(s, level)
-		}
-
-		ut.EmitStr(s, player.x, player.y, white, string(player.rune))
+		ut.EmitStr(s, player.X, player.Y, white, string(player.Type.GetRune()))
 		s.Show()
 	}
 

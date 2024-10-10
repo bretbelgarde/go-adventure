@@ -1,7 +1,6 @@
 package main
 
 import (
-	cr "bretbelgarde.com/adventure/creatures"
 	"bretbelgarde.com/adventure/die"
 	ut "bretbelgarde.com/adventure/utils"
 	tc "github.com/gdamore/tcell/v2"
@@ -11,16 +10,32 @@ type Actors struct {
 	Actors []Actor
 }
 
-type Actor struct {
-	ID       string
-	X        int
-	Y        int
-	Floor    int
-	Color    tc.Style
-	Creature cr.Creature
+type ActorType interface {
+	GetRune() rune
+	GetHealth() int
+	GetDescription() string
+	TakeDamage(int)
 }
 
-func (a *Actor) Move(floor int, s tc.Screen) {
+type Actor struct {
+	ID    string
+	X     int
+	Y     int
+	Floor int
+	Color tc.Style
+	Type  ActorType
+}
+
+func (a *Actor) Move(x, y int, s tc.Screen) {
+	l, _, _, _ := s.GetContent(a.X+x, a.Y+y)
+
+	if l != '#' {
+		a.X += x
+		a.Y += y
+	}
+}
+
+func (a *Actor) Wander(floor int, s tc.Screen) {
 	/*
 		Random Wander
 		1 = Up
@@ -59,7 +74,7 @@ func (a *Actor) Move(floor int, s tc.Screen) {
 
 func (a *Actor) Draw(s tc.Screen, f int) {
 	if f == a.Floor {
-		ut.EmitStr(s, a.X, a.Y, a.Color, string(a.Creature.GetRune()))
+		ut.EmitStr(s, a.X, a.Y, a.Color, string(a.Type.GetRune()))
 	}
 }
 
@@ -67,20 +82,12 @@ func (a *Actor) GetLocation() (x, y int) {
 	return a.X, a.Y
 }
 
-func NewActor(x, y, floor int, color tc.Style, creature cr.Creature) Actor {
+func NewActor(x, y, floor int, color tc.Style, actor ActorType) Actor {
 	return Actor{
-		X:        x,
-		Y:        y,
-		Floor:    floor,
-		Color:    color,
-		Creature: creature,
+		X:     x,
+		Y:     y,
+		Floor: floor,
+		Color: color,
+		Type:  actor,
 	}
-}
-
-type player struct {
-	rune   rune
-	x      int
-	y      int
-	health int
-	level  int
 }
