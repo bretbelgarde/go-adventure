@@ -41,7 +41,7 @@ func main() {
 	var msg string
 
 	debug := false
-	player := player{rune: 'P', x: 0, y: 0, health: 10, level: 1}
+	player := player{rune: '@', x: 3, y: 3, health: 10, level: 1}
 
 	mapp := [9][9]rune{
 		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
@@ -50,7 +50,7 @@ func main() {
 		{'#', '.', '.', '.', '#', '.', '.', '.', '#'},
 		{'#', '.', '.', '#', '#', '#', '.', '.', '#'},
 		{'#', '.', '.', '.', '#', '.', '.', '.', '#'},
-		{'#', '.', '.', '.', '.', '.', '.', '.', '#'},
+		{'#', '.', '.', '.', '.', '.', '>', '.', '#'},
 		{'#', '.', '.', '.', '.', '.', '.', '.', '#'},
 		{'#', '#', '#', '#', '#', '#', '#', '#', '#'},
 	}
@@ -111,7 +111,7 @@ func main() {
 
 	a.Actors = append(a.Actors, NewActor(4, 3, 2, brown, &creatures.Rat{Rune: 'r', Health: 10, Description: "Rat 1"}))
 	a.Actors = append(a.Actors, NewActor(5, 2, 2, brown, &creatures.Rat{Rune: 'r', Health: 10, Description: "Rat 2"}))
-	a.Actors = append(a.Actors, NewActor(4, 3, 2, brown, &creatures.Rat{Rune: 'r', Health: 10, Description: "Rat 3"}))
+	a.Actors = append(a.Actors, NewActor(5, 4, 2, brown, &creatures.Rat{Rune: 'r', Health: 10, Description: "Rat 3"}))
 	a.Actors = append(a.Actors, NewActor(6, 3, 2, brown, &creatures.Rat{Rune: 'r', Health: 10, Description: "Rat 4"}))
 
 	quit := make(chan struct{})
@@ -134,27 +134,28 @@ func main() {
 						} else if g == '<' {
 							msg = "You see stairs up"
 						}
-
 					case '>':
 						g := current[player.x-1][player.y-1]
 						if g == '>' {
 							level++
 							s.Clear()
 						}
-
 					case '<':
 						g := current[player.x-1][player.y-1]
 						if g == '<' {
 							level--
 							s.Clear()
 						}
-
 					case 'h':
 						r, _, _, _ := s.GetContent(player.x-1, player.y)
 						if r == '#' {
 							// Do a thing
 						} else if player.x-1 >= 0 {
 							player.x--
+						}
+
+						for i := range a.Actors {
+							a.Actors[i].Move(level, s)
 						}
 					case 'l':
 						r, _, _, _ := s.GetContent(player.x+1, player.y)
@@ -163,6 +164,10 @@ func main() {
 						} else if player.x+1 < x {
 							player.x++
 						}
+
+						for i := range a.Actors {
+							a.Actors[i].Move(level, s)
+						}
 					case 'k':
 						r, _, _, _ := s.GetContent(player.x, player.y-1)
 						if r == '#' {
@@ -170,12 +175,20 @@ func main() {
 						} else if player.y-1 >= 0 {
 							player.y--
 						}
+
+						for i := range a.Actors {
+							a.Actors[i].Move(level, s)
+						}
 					case 'j':
 						r, _, _, _ := s.GetContent(player.x, player.y+1)
 						if r == '#' {
 							// Do a thing
 						} else if player.y+1 < y {
 							player.y++
+						}
+
+						for i := range a.Actors {
+							a.Actors[i].Move(level, s)
 						}
 					}
 
@@ -189,12 +202,19 @@ func main() {
 					} else if player.x+1 < x {
 						player.x++
 					}
+
+					for i := range a.Actors {
+						a.Actors[i].Move(level, s)
+					}
 				case tc.KeyLeft:
 					r, _, _, _ := s.GetContent(player.x-1, player.y)
 					if r == '#' {
 						// Do a thing
 					} else if player.x-1 >= 0 {
 						player.x--
+					}
+					for i := range a.Actors {
+						a.Actors[i].Move(level, s)
 					}
 				case tc.KeyUp:
 					r, _, _, _ := s.GetContent(player.x, player.y-1)
@@ -203,12 +223,20 @@ func main() {
 					} else if player.y-1 >= 0 {
 						player.y--
 					}
+
+					for i := range a.Actors {
+						a.Actors[i].Move(level, s)
+					}
 				case tc.KeyDown:
 					r, _, _, _ := s.GetContent(player.x, player.y+1)
 					if r == '#' {
 						// Do a thing
 					} else if player.y+1 < y {
 						player.y++
+					}
+
+					for i := range a.Actors {
+						a.Actors[i].Move(level, s)
 					}
 				case tc.KeyCtrlD:
 					debug = !debug
@@ -229,7 +257,7 @@ loop:
 			break loop
 		case <-time.After(time.Millisecond * 50):
 		}
-		//s.Clear()
+		s.Clear()
 
 		dbg := fmt.Sprintf("player x: %d y: %d", player.x, player.y)
 		if debug {
