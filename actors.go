@@ -59,7 +59,7 @@ func (a *Actor) Move(floor int, s tc.Screen) {
 
 func (a *Actor) Draw(s tc.Screen, f int) {
 	if f == a.Floor {
-		ut.EmitStr(s, a.X, a.Y, tc.StyleDefault, string(a.Creature.GetRune()))
+		ut.EmitStr(s, a.X, a.Y, a.Color, string(a.Creature.GetRune()))
 	}
 }
 
