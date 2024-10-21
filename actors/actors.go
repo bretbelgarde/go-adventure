@@ -24,6 +24,7 @@ type Actor struct {
 }
 
 func (a *Actor) Move(x, y int, s tc.Screen) {
+	// TODO: add more detailed collision detection
 	l, _, _, _ := s.GetContent(a.X+x, a.Y+y)
 
 	if l != '#' {

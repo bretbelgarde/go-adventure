@@ -140,7 +140,10 @@ func main() {
 			case tc.KeyCtrlC, tc.KeyEscape:
 				quit()
 			}
+		default:
+			continue
 		}
+
 		// Creature Movement
 		pig.Wander(rand.Intn(4)+1, level, s)
 
