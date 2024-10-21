@@ -1,14 +1,11 @@
-package main
+package actors
 
 import (
-	"bretbelgarde.com/adventure/die"
 	ut "bretbelgarde.com/adventure/utils"
 	tc "github.com/gdamore/tcell/v2"
 )
 
-type Actors struct {
-	Actors []Actor
-}
+type Actors []Actor
 
 type ActorType interface {
 	GetRune() rune
@@ -35,7 +32,7 @@ func (a *Actor) Move(x, y int, s tc.Screen) {
 	}
 }
 
-func (a *Actor) Wander(floor int, s tc.Screen) {
+func (a *Actor) Wander(roll, floor int, s tc.Screen) {
 	/*
 		Random Wander
 		1 = Up
@@ -45,29 +42,15 @@ func (a *Actor) Wander(floor int, s tc.Screen) {
 	*/
 
 	if floor == a.Floor {
-		var xx, yy int
-		d, err := die.Roll("1d4")
-
-		if err != nil {
-			panic("Die roll failed")
-		}
-
-		switch d {
+		switch roll {
 		case 1:
-			yy = -1
+			a.Move(0, -1, s)
 		case 2:
-			xx = 1
+			a.Move(1, 0, s)
 		case 3:
-			yy = 1
+			a.Move(0, 1, s)
 		case 4:
-			xx = -1
-		}
-
-		l, _, _, _ := s.GetContent(a.X+xx, a.Y+yy)
-
-		if l != '#' {
-			a.X += xx
-			a.Y += yy
+			a.Move(-1, 0, s)
 		}
 	}
 }
