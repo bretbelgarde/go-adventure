@@ -138,9 +138,9 @@ func main() {
 	var creatures actors.Actors
 	creatures = append(
 		creatures,
-		actors.NewActor(3, 8, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves straw"}),
-		actors.NewActor(5, 8, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves sticks"}),
-		actors.NewActor(5, 8, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves bricks"}),
+		actors.NewActor(3, 7, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves straw"}),
+		actors.NewActor(4, 7, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves sticks"}),
+		actors.NewActor(5, 7, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves bricks"}),
 		actors.NewActor(5, 3, 1, white, &cr.Rat{Rune: 'r', Health: 10, Description: "Lab Rat"}),
 		actors.NewActor(5, 5, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "You Dirty Rat"}),
 		actors.NewActor(4, 4, 1, white, &cr.Rat{Rune: 'r', Health: 10, Description: "Ratt *Plays Guitar Riff*"}),
@@ -151,6 +151,11 @@ func main() {
 		s.Fini()
 		os.Exit(0)
 	}
+
+	// TODO: review creature movement so it doesn't move before the initial draw.
+	// TODO: Adjust key events to only trigger a turn if the one of the movement/action keys are pressed.
+
+	first_pass := true
 
 	for {
 		// Update Screen
@@ -217,12 +222,16 @@ func main() {
 		}
 
 		// Creature Movement
-		for _, c := range creatures {
-			if c.Floor == player.Floor {
-				c.Wander(rand.Intn(4)+1, level, s)
-
+		// First pass stops creature movement before the initial draw
+		if !first_pass {
+			for _, c := range creatures {
+				if c.Floor == player.Floor {
+					c.Wander(rand.Intn(5)+1, level, s)
+				}
 			}
 		}
+
+		first_pass = false
 
 		// Process Event
 		dbg := fmt.Sprintf("player level: %d x: %d y: %d", player.Floor, player.X, player.Y)
