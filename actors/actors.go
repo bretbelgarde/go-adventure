@@ -4,6 +4,7 @@ import (
 	"bretbelgarde.com/adventure/maps"
 	ut "bretbelgarde.com/adventure/utils"
 	tc "github.com/gdamore/tcell/v2"
+	"golang.org/x/exp/rand"
 )
 
 type Actors []*Actor
@@ -33,7 +34,7 @@ func (a *Actor) Move(m maps.Map, x, y int) {
 	}
 }
 
-func (a *Actor) Wander(m maps.Map, roll, f int) {
+func (a *Actor) Wander(m maps.Map, f int) {
 	/*
 		Random Wander
 		1 = Up
@@ -42,6 +43,8 @@ func (a *Actor) Wander(m maps.Map, roll, f int) {
 		4 = Left
 		5 = Stay
 	*/
+
+	roll := rand.Intn(5) + 1
 
 	if f == a.Floor {
 		switch roll {

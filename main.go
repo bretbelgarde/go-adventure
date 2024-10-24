@@ -11,7 +11,6 @@ import (
 	"bretbelgarde.com/adventure/player"
 	ut "bretbelgarde.com/adventure/utils"
 	tc "github.com/gdamore/tcell/v2"
-	"golang.org/x/exp/rand"
 )
 
 type Game struct {
@@ -52,7 +51,7 @@ func (g *Game) HandleMovement(current *maps.Map, x, y int) {
 	if newx != origx || newy != origy {
 		for _, c := range g.creatures {
 			if c.Floor == g.player.Floor {
-				c.Wander(*current, rand.Intn(5)+1, g.floor)
+				c.Wander(*current, g.floor)
 			}
 		}
 	}
