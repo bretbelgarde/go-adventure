@@ -43,103 +43,120 @@ func (g *Game) Init() {
 	}
 }
 
+func (g *Game) HandleMovement(current *maps.Map, x, y int) {
+	// There may be a more graceful way to do this, but this will do for now
+	origx, origy, _ := g.player.GetLocation()
+	g.player.Move(*current, x, y)
+	newx, newy, _ := g.player.GetLocation()
+
+	if newx != origx || newy != origy {
+		for _, c := range g.creatures {
+			if c.Floor == g.player.Floor {
+				c.Wander(*current, rand.Intn(5)+1, g.floor)
+			}
+		}
+	}
+}
+
 func main() {
 	var g Game
 	g.Init()
 
 	/* Colors */
-	white := tc.StyleDefault.
-		Foreground(tc.ColorWhite).
-		Background(tc.ColorBlack)
+	var (
+		white = tc.StyleDefault.
+			Foreground(tc.ColorWhite).
+			Background(tc.ColorBlack)
 
-	brown := tc.StyleDefault.
-		Foreground(tc.ColorBrown).
-		Background(tc.ColorBlack)
+		brown = tc.StyleDefault.
+			Foreground(tc.ColorBrown).
+			Background(tc.ColorBlack)
 
-	pink := tc.StyleDefault.
-		Foreground(tc.ColorPink).
-		Background(tc.ColorBlack)
+		pink = tc.StyleDefault.
+			Foreground(tc.ColorPink).
+			Background(tc.ColorBlack)
 
-	gray := tc.StyleDefault.
-		Foreground(tc.ColorGray).
-		Background(tc.ColorBlack)
+		gray = tc.StyleDefault.
+			Foreground(tc.ColorGray).
+			Background(tc.ColorBlack)
 
-	burlyWood := tc.StyleDefault.
-		Foreground(tc.ColorBurlyWood).
-		Background(tc.ColorBlack)
+		burlyWood = tc.StyleDefault.
+				Foreground(tc.ColorBurlyWood).
+				Background(tc.ColorBlack)
 
-	gold := tc.StyleDefault.
-		Foreground(tc.ColorGold).
-		Background(tc.ColorBlack)
+		gold = tc.StyleDefault.
+			Foreground(tc.ColorGold).
+			Background(tc.ColorBlack)
 
-	iron := tc.StyleDefault.
-		Foreground(tc.ColorSlateGray).
-		Background(tc.ColorBlack)
+		iron = tc.StyleDefault.
+			Foreground(tc.ColorSlateGray).
+			Background(tc.ColorBlack)
 
-	/* Items */
-	goldCoin := items.Item{
-		ID:          "gold_coin",
-		Rune:        '$',
-		Description: "A pile of filthy lucre.",
-		Color:       gold,
-	}
+		/* Items */
+		goldCoin = items.Item{
+			ID:          "gold_coin",
+			Rune:        '$',
+			Description: "A pile of filthy lucre.",
+			Color:       gold,
+		}
 
-	rustySword := items.Item{
-		ID:          "rusty_sword",
-		Rune:        '/',
-		Description: "A rusty sword.",
-		Color:       iron,
-	}
+		rustySword = items.Item{
+			ID:          "rusty_sword",
+			Rune:        '/',
+			Description: "A rusty sword.",
+			Color:       iron,
+		}
 
-	/* Cells */
+		/* Cells */
 
-	wall := maps.MapCell{
-		Rune:        '#',
-		Traversable: false,
-		Description: "A rough-hewn stone wall.",
-		Color:       gray,
-	}
+		wall = maps.MapCell{
+			Rune:        '#',
+			Traversable: false,
+			Description: "A rough-hewn stone wall.",
+			Color:       gray,
+		}
 
-	ground := maps.MapCell{
-		Rune:        '.',
-		Traversable: true,
-		Description: "A hard-packed dirt floor.",
-		Color:       burlyWood,
-	}
+		ground = maps.MapCell{
+			Rune:        '.',
+			Traversable: true,
+			Description: "A hard-packed dirt floor.",
+			Color:       burlyWood,
+		}
 
-	ground_with_gold := maps.MapCell{
-		Rune:        '.',
-		Traversable: true,
-		Description: "A hard-packed dirt floor.",
-		Color:       burlyWood,
-		Items: items.Items{
-			goldCoin,
-		},
-	}
+		ground_with_gold = maps.MapCell{
+			Rune:        '.',
+			Traversable: true,
+			Description: "A hard-packed dirt floor.",
+			Color:       burlyWood,
+			Items: items.Items{
+				goldCoin,
+			},
+		}
 
-	ground_with_sword := maps.MapCell{
-		Rune:        '.',
-		Traversable: true,
-		Description: "A hard-packed dirt floor.",
-		Color:       burlyWood,
-		Items: items.Items{
-			rustySword,
-		},
-	}
+		ground_with_sword = maps.MapCell{
+			Rune:        '.',
+			Traversable: true,
+			Description: "A hard-packed dirt floor.",
+			Color:       burlyWood,
+			Items: items.Items{
+				rustySword,
+			},
+		}
 
-	down_stairs := maps.MapCell{
-		Rune:        '>',
-		Traversable: true,
-		Description: "A maze of twisty stairs leading down.",
-		Color:       brown,
-	}
+		down_stairs = maps.MapCell{
+			Rune:        '>',
+			Traversable: true,
+			Description: "A maze of twisty stairs leading down.",
+			Color:       brown,
+		}
 
-	up_stairs := maps.MapCell{
-		Rune:        '<',
-		Traversable: true,
-		Description: "A maze of twisty stairs leading up.",
-		Color:       brown,
-	}
+		up_stairs = maps.MapCell{
+			Rune:        '<',
+			Traversable: true,
+			Description: "A maze of twisty stairs leading up.",
+			Color:       brown,
+		}
+	)
 
 	g.dungeon = append(g.dungeon, maps.Map{
 		{wall, wall, wall, wall, wall, wall, wall, wall, wall},
@@ -189,14 +206,10 @@ func main() {
 		os.Exit(0)
 	}
 
-	// TODO: review creature movement so it doesn't move before the initial draw.
-	// TODO: Adjust key events to only trigger a turn if the one of the movement/action keys are pressed.
-
-	first_pass := true
-
 	for {
 		// Update Screen
 		g.screen.Show()
+		g.msg = ""
 
 		// Poll Event
 		ev := g.screen.PollEvent()
@@ -231,16 +244,16 @@ func main() {
 				}
 
 			case tc.KeyRight:
-				g.player.Move((*current), 1, 0)
+				g.HandleMovement(current, 1, 0)
 
 			case tc.KeyLeft:
-				g.player.Move((*current), -1, 0)
+				g.HandleMovement(current, -1, 0)
 
 			case tc.KeyUp:
-				g.player.Move((*current), 0, -1)
+				g.HandleMovement(current, 0, -1)
 
 			case tc.KeyDown:
-				g.player.Move((*current), 0, 1)
+				g.HandleMovement(current, 0, 1)
 
 			case tc.KeyCtrlD:
 				g.debug = !g.debug
@@ -258,31 +271,11 @@ func main() {
 
 		}
 
-		// Creature Movement
-		// First pass stops creature movement before the initial draw
-		if !first_pass {
-			for _, c := range g.creatures {
-				if c.Floor == g.player.Floor {
-					c.Wander(*current, rand.Intn(5)+1, g.floor)
-				}
-			}
-		}
-
-		first_pass = false
-
 		// Process Event
 		dbg := fmt.Sprintf("player floor: %d x: %d y: %d", g.player.Floor, g.player.X, g.player.Y)
 
 		if g.debug {
-			var yy int
-			if g.player.Y == 0 {
-				_, yy = g.screen.Size()
-				yy--
-			} else {
-				yy = 0
-			}
-
-			ut.EmitStr(g.screen, 20, yy, white, dbg)
+			ut.EmitStr(g.screen, 20, 1, white, dbg)
 		}
 
 		if g.floor == 0 {
@@ -320,7 +313,7 @@ func main() {
 		g.player.Draw(g.screen, g.floor)
 
 		if g.msg != "" {
-			ut.EmitStr(g.screen, 0, 0, white, g.msg)
+			ut.EmitStr(g.screen, 20, 0, white, g.msg)
 		}
 
 	}
