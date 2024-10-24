@@ -62,8 +62,8 @@ func main() {
 	var g Game
 	g.Init()
 
-	/* Colors */
 	var (
+		/* Colors */
 		white = tc.StyleDefault.
 			Foreground(tc.ColorWhite).
 			Background(tc.ColorBlack)
@@ -208,7 +208,8 @@ func main() {
 
 	for {
 		// Update Screen
-		g.screen.Show()
+		g.screen.Clear()
+
 		g.msg = ""
 
 		// Poll Event
@@ -316,5 +317,6 @@ func main() {
 			ut.EmitStr(g.screen, 20, 0, white, g.msg)
 		}
 
+		g.screen.Show()
 	}
 }
