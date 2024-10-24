@@ -169,7 +169,6 @@ func main() {
 		Foreground(tc.ColorWhite).
 		Background(tc.ColorBlack))
 
-	g.screen.EnableMouse()
 	g.screen.Clear()
 
 	g.player = actors.NewActor(2, 2, 0, white, &player.Player{Rune: '@', Health: 10, Description: "Player"})
