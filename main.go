@@ -24,12 +24,12 @@ type Game struct {
 	creatures actors.Actors
 }
 
-func main() {
-	var g Game
+func (g *Game) Init() {
 	var err error
 	g.debug = false
 
 	tc.SetEncodingFallback(tc.EncodingFallbackASCII)
+
 	g.screen, err = tc.NewScreen()
 
 	if err != nil {
@@ -41,7 +41,13 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
+}
 
+func main() {
+	var g Game
+	g.Init()
+
+	/* Colors */
 	white := tc.StyleDefault.
 		Foreground(tc.ColorWhite).
 		Background(tc.ColorBlack)
@@ -66,12 +72,26 @@ func main() {
 		Foreground(tc.ColorGold).
 		Background(tc.ColorBlack)
 
+	iron := tc.StyleDefault.
+		Foreground(tc.ColorSlateGray).
+		Background(tc.ColorBlack)
+
+	/* Items */
 	goldCoin := items.Item{
 		ID:          "gold_coin",
 		Rune:        '$',
 		Description: "A pile of filthy lucre.",
 		Color:       gold,
 	}
+
+	rustySword := items.Item{
+		ID:          "rusty_sword",
+		Rune:        '/',
+		Description: "A rusty sword.",
+		Color:       iron,
+	}
+
+	/* Cells */
 
 	wall := maps.MapCell{
 		Rune:        '#',
@@ -94,6 +114,16 @@ func main() {
 		Color:       burlyWood,
 		Items: items.Items{
 			goldCoin,
+		},
+	}
+
+	ground_with_sword := maps.MapCell{
+		Rune:        '.',
+		Traversable: true,
+		Description: "A hard-packed dirt floor.",
+		Color:       burlyWood,
+		Items: items.Items{
+			rustySword,
 		},
 	}
 
@@ -125,7 +155,7 @@ func main() {
 		{wall, wall, wall, wall, wall, wall, wall, wall, wall},
 		{wall, wall, ground, ground, ground, ground, ground, wall, wall},
 		{wall, ground, ground, ground, ground, ground, ground, ground, wall},
-		{wall, ground, ground, ground, ground, ground, ground, ground, wall},
+		{wall, ground_with_sword, ground, ground, ground, ground, ground, ground, wall},
 		{wall, ground, ground, ground, wall, ground, ground, ground, wall},
 		{wall, ground, ground, ground, ground, ground, ground, ground, wall},
 		{wall, ground, ground, ground, ground, ground, up_stairs, ground, wall},
