@@ -28,7 +28,7 @@ func (mc *MapCell) GetDescription() string {
 	return mc.Description
 }
 
-func (mc *MapCell) GetTraversable() bool {
+func (mc *MapCell) IsTraversable() bool {
 	return mc.Traversable
 }
 

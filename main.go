@@ -133,18 +133,18 @@ func main() {
 	s.EnableMouse()
 	s.Clear()
 
-	player := actors.NewActor(3, 3, 0, white, &player.Player{Rune: '@', Health: 10, Description: "Player"})
+	player := actors.NewActor(2, 2, 0, white, &player.Player{Rune: '@', Health: 10, Description: "Player"})
 
 	var creatures actors.Actors
 	creatures = append(
 		creatures,
-		actors.NewActor(3, 7, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves straw"}),
-		actors.NewActor(4, 7, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves sticks"}),
-		actors.NewActor(5, 7, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves bricks"}),
-		actors.NewActor(5, 3, 1, white, &cr.Rat{Rune: 'r', Health: 10, Description: "Lab Rat"}),
-		actors.NewActor(5, 5, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "You Dirty Rat"}),
-		actors.NewActor(4, 4, 1, white, &cr.Rat{Rune: 'r', Health: 10, Description: "Ratt *Plays Guitar Riff*"}),
-		actors.NewActor(6, 4, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "Rat-tatooee"}),
+		actors.NewActor(2, 6, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves straw"}),
+		actors.NewActor(3, 6, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves sticks"}),
+		actors.NewActor(4, 6, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves bricks"}),
+		actors.NewActor(4, 3, 1, white, &cr.Rat{Rune: 'r', Health: 10, Description: "Lab Rat"}),
+		actors.NewActor(4, 5, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "You Dirty Rat"}),
+		actors.NewActor(3, 4, 1, white, &cr.Rat{Rune: 'r', Health: 10, Description: "Ratt *Plays Guitar Riff*"}),
+		actors.NewActor(5, 4, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "Rat-tatooee"}),
 	)
 
 	quit := func() {
@@ -173,20 +173,20 @@ func main() {
 			case tc.KeyRune:
 				switch ev.Rune() {
 				case ':':
-					if current[player.X-1][player.Y-1].Items != nil {
-						msg = current[player.X-1][player.Y-1].GetFirstItem().Description
+					if current[player.X][player.Y].Items != nil {
+						msg = current[player.X][player.Y].GetFirstItem().GetDescription()
 					} else {
-						msg = current[player.X-1][player.Y-1].GetDescription()
+						msg = current[player.X][player.Y].GetDescription()
 					}
 
 				case '>':
-					g := current[player.X-1][player.Y-1].GetRune()
+					g := current[player.X][player.Y].GetRune()
 					if g == '>' {
 						level++
 						s.Clear()
 					}
 				case '<':
-					g := current[player.X-1][player.Y-1].GetRune()
+					g := current[player.X][player.Y].GetRune()
 					if g == '<' {
 						level--
 						s.Clear()
@@ -194,16 +194,16 @@ func main() {
 				}
 
 			case tc.KeyRight:
-				player.Move(1, 0, s)
+				player.Move(current, 1, 0)
 
 			case tc.KeyLeft:
-				player.Move(-1, 0, s)
+				player.Move(current, -1, 0)
 
 			case tc.KeyUp:
-				player.Move(0, -1, s)
+				player.Move(current, 0, -1)
 
 			case tc.KeyDown:
-				player.Move(0, 1, s)
+				player.Move(current, 0, 1)
 
 			case tc.KeyCtrlD:
 				debug = !debug
@@ -226,7 +226,7 @@ func main() {
 		if !first_pass {
 			for _, c := range creatures {
 				if c.Floor == player.Floor {
-					c.Wander(rand.Intn(5)+1, level, s)
+					c.Wander(current, rand.Intn(5)+1, level)
 				}
 			}
 		}
@@ -270,17 +270,17 @@ func main() {
 					map_rune = current[i][j].GetRune()
 				}
 
-				ut.EmitStr(s, i+1, j+1, color, string(map_rune))
+				ut.EmitStr(s, i, j, color, string(map_rune))
 			}
 		}
 
 		for _, c := range creatures {
 			if c.Floor == player.Floor {
-				c.Draw(level, s)
+				c.Draw(s, level)
 			}
 		}
 
-		player.Draw(level, s)
+		player.Draw(s, level)
 
 		if msg != "" {
 			ut.EmitStr(s, 0, 0, white, msg)

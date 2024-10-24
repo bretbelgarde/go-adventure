@@ -1,8 +1,7 @@
 package actors
 
 import (
-	"fmt"
-
+	"bretbelgarde.com/adventure/maps"
 	ut "bretbelgarde.com/adventure/utils"
 	tc "github.com/gdamore/tcell/v2"
 )
@@ -25,57 +24,47 @@ type Actor struct {
 	Type  ActorType
 }
 
-func (a *Actor) Move(x, y int, s tc.Screen) {
-	// TODO: add more detailed collision detection
-	l, _, _, _ := s.GetContent(a.X+x, a.Y+y)
+func (a *Actor) Move(m maps.Map, x, y int) {
+	t := m.GetCell(a.X+x, a.Y+y).IsTraversable()
 
-	style := tc.StyleDefault.Foreground(tc.ColorRed).Background(tc.ColorBlack)
-
-	if a.Type.GetRune() == '@' {
-		ut.EmitStr(s, 30, 10, style, fmt.Sprintf("In Move before update: l:%s (%d,%d)", string(l), a.X, a.Y))
-	}
-
-	if l != '#' {
+	if t {
 		a.X += x
 		a.Y += y
 	}
-
-	if a.Type.GetRune() == '@' {
-		ut.EmitStr(s, 30, 11, style, fmt.Sprintf("In Move after update: l:%s (%d,%d)", string(l), a.X, a.Y))
-	}
 }
 
-func (a *Actor) Wander(roll, f int, s tc.Screen) {
+func (a *Actor) Wander(m maps.Map, roll, f int) {
 	/*
 		Random Wander
 		1 = Up
 		2 = Right
 		3 = Down
 		4 = Left
+		5 = Stay
 	*/
 
 	if f == a.Floor {
 		switch roll {
 		case 1:
-			a.Move(0, -1, s)
+			a.Move(m, 0, -1)
 		case 2:
-			a.Move(1, 0, s)
+			a.Move(m, 1, 0)
 		case 3:
-			a.Move(0, 1, s)
+			a.Move(m, 0, 1)
 		case 4:
-			a.Move(-1, 0, s)
+			a.Move(m, -1, 0)
 		}
 	}
 }
 
-func (a *Actor) Draw(f int, s tc.Screen) {
+func (a *Actor) Draw(s tc.Screen, f int) {
 	if f == a.Floor {
 		ut.EmitStr(s, a.X, a.Y, a.Color, string(a.Type.GetRune()))
 	}
 }
 
-func (a *Actor) GetLocation() (z, x, y int) {
-	return a.Floor, a.X, a.Y
+func (a *Actor) GetLocation() (x, y, z int) {
+	return a.X, a.Y, a.Floor
 }
 
 func NewActor(x, y, floor int, color tc.Style, actor ActorType) *Actor {
