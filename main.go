@@ -66,6 +66,13 @@ func main() {
 		Foreground(tc.ColorGold).
 		Background(tc.ColorBlack)
 
+	goldCoin := items.Item{
+		ID:          "gold_coin",
+		Rune:        '$',
+		Description: "A pile of filthy lucre.",
+		Color:       gold,
+	}
+
 	wall := maps.MapCell{
 		Rune:        '#',
 		Traversable: false,
@@ -86,12 +93,7 @@ func main() {
 		Description: "A hard-packed dirt floor.",
 		Color:       burlyWood,
 		Items: items.Items{
-			items.Item{
-				ID:          "gold",
-				Description: "a pile of gold coins",
-				Rune:        '$',
-				Color:       gold,
-			},
+			goldCoin,
 		},
 	}
 
