@@ -13,6 +13,56 @@ import (
 	tc "github.com/gdamore/tcell/v2"
 )
 
+type Cursor struct {
+	X        int
+	Y        int
+	Rune     rune
+	Color    tc.Style
+	IsActive bool
+	Current  *maps.Map
+}
+
+func NewCursor(x, y int, m *maps.Map) *Cursor {
+	return &Cursor{
+		X:        x,
+		Y:        y,
+		Rune:     tc.RuneBlock,
+		Color:    tc.StyleDefault.Foreground(tc.ColorDarkGoldenrod).Background(tc.ColorBlack),
+		Current:  m,
+		IsActive: false,
+	}
+}
+
+func (c *Cursor) Draw(s tc.Screen) {
+	ut.EmitStr(s, c.X, c.Y, c.Color, string(c.Rune))
+}
+
+func (c *Cursor) Look() string {
+	var seen string
+	var selected *maps.MapCell
+
+	if c.X < 0 || c.Y < 0 || c.X >= c.Current.GetWidth() || c.Y >= c.Current.GetHeight() {
+		return "You don't see anything."
+	} else {
+		selected = c.Current.GetCell(c.X, c.Y)
+	}
+
+	if len(selected.GetItems()) > 1 {
+		seen = selected.GetDescription() + " There is a stack of items on the ground here."
+	} else if len(selected.GetItems()) == 1 {
+		seen = selected.GetFirstItem().GetDescription()
+	} else {
+		seen = selected.GetDescription()
+	}
+
+	return seen
+}
+
+func (c *Cursor) Move(x, y int) {
+	c.X += x
+	c.Y += y
+}
+
 type Game struct {
 	screen    tc.Screen
 	debug     bool
@@ -200,6 +250,8 @@ func main() {
 		actors.NewActor(5, 4, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "Rat-tatooee"}),
 	)
 
+	cursor := NewCursor(2, 2, &g.dungeon[g.floor])
+
 	quit := func() {
 		g.screen.Fini()
 		os.Exit(0)
@@ -223,11 +275,7 @@ func main() {
 			case tc.KeyRune:
 				switch ev.Rune() {
 				case ':':
-					if (*current)[g.player.X][g.player.Y].Items != nil {
-						g.msg = (*current)[g.player.X][g.player.Y].GetFirstItem().GetDescription()
-					} else {
-						g.msg = (*current)[g.player.X][g.player.Y].GetDescription()
-					}
+					cursor.IsActive = !cursor.IsActive
 
 				case '>':
 					r := (*current)[g.player.X][g.player.Y].GetRune()
@@ -244,16 +292,32 @@ func main() {
 				}
 
 			case tc.KeyRight:
-				g.HandleMovement(current, 1, 0)
+				if !cursor.IsActive {
+					g.HandleMovement(current, 1, 0)
+				}
+
+				cursor.Move(1, 0)
 
 			case tc.KeyLeft:
-				g.HandleMovement(current, -1, 0)
+				if !cursor.IsActive {
+					g.HandleMovement(current, -1, 0)
+				}
+
+				cursor.Move(-1, 0)
 
 			case tc.KeyUp:
-				g.HandleMovement(current, 0, -1)
+				if !cursor.IsActive {
+					g.HandleMovement(current, 0, -1)
+				}
+
+				cursor.Move(0, -1)
 
 			case tc.KeyDown:
-				g.HandleMovement(current, 0, 1)
+				if !cursor.IsActive {
+					g.HandleMovement(current, 0, 1)
+				}
+
+				cursor.Move(0, 1)
 
 			case tc.KeyCtrlD:
 				g.debug = !g.debug
@@ -269,6 +333,10 @@ func main() {
 		default:
 			continue
 
+		}
+
+		if cursor.IsActive {
+			g.msg = cursor.Look()
 		}
 
 		// Process Event
@@ -311,6 +379,10 @@ func main() {
 		}
 
 		g.player.Draw(g.screen, g.floor)
+
+		if cursor.IsActive {
+			cursor.Draw(g.screen)
+		}
 
 		if g.msg != "" {
 			ut.EmitStr(g.screen, 20, 0, white, g.msg)

@@ -11,6 +11,13 @@ type Map [][]MapCell
 func (m *Map) GetCell(x, y int) *MapCell {
 	return &(*m)[y][x]
 }
+func (m *Map) GetHeight() int {
+	return len(*m)
+}
+
+func (m *Map) GetWidth() int {
+	return len((*m)[0])
+}
 
 type MapCell struct {
 	Rune        rune   `json:"rune,omitempty"`
