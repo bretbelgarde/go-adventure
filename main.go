@@ -37,19 +37,26 @@ func (c *Cursor) Draw(s tc.Screen) {
 	ut.EmitStr(s, c.X, c.Y, c.Color, string(c.Rune))
 }
 
+func (c *Cursor) SetCurrentFloor(floor maps.Map) {
+	c.Current = &floor
+}
+
 func (c *Cursor) Look() string {
 	var seen string
 	var selected *maps.MapCell
+	var items *items.Items
 
 	if c.X < 0 || c.Y < 0 || c.X >= c.Current.GetWidth() || c.Y >= c.Current.GetHeight() {
 		return "You don't see anything."
 	} else {
 		selected = c.Current.GetCell(c.X, c.Y)
+		items = selected.GetItems()
+
 	}
 
-	if len(selected.GetItems()) > 1 {
+	if len(*items) > 1 {
 		seen = selected.GetDescription() + " There is a stack of items on the ground here."
-	} else if len(selected.GetItems()) == 1 {
+	} else if len(*items) == 1 {
 		seen = selected.GetFirstItem().GetDescription()
 	} else {
 		seen = selected.GetDescription()
@@ -179,6 +186,7 @@ func main() {
 			Color:       burlyWood,
 			Items: items.Items{
 				goldCoin,
+				rustySword,
 			},
 		}
 
@@ -210,11 +218,11 @@ func main() {
 	g.dungeon = append(g.dungeon, maps.Map{
 		{wall, wall, wall, wall, wall, wall, wall, wall, wall},
 		{wall, ground, ground, ground, ground, ground, ground, ground, wall},
-		{wall, ground, ground, ground, ground, ground, ground, ground, wall},
+		{wall, ground, ground, ground, ground, ground, down_stairs, ground, wall},
 		{wall, ground, ground, ground, wall, ground, ground, ground, wall},
 		{wall, ground, ground, wall, wall, wall, ground, ground, wall},
 		{wall, ground, ground_with_gold, ground, wall, ground, ground, ground, wall},
-		{wall, ground, ground, ground, ground, ground, down_stairs, ground, wall},
+		{wall, ground, ground, ground, ground, ground, ground, ground, wall},
 		{wall, ground, ground, ground, ground, ground, ground, ground, wall},
 		{wall, wall, wall, wall, wall, wall, wall, wall, wall},
 	}, maps.Map{
@@ -250,7 +258,7 @@ func main() {
 		actors.NewActor(5, 4, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "Rat-tatooee"}),
 	)
 
-	cursor := NewCursor(2, 2, &g.dungeon[g.floor])
+	cursor := NewCursor(g.player.X, g.player.Y, &g.dungeon[g.floor])
 
 	quit := func() {
 		g.screen.Fini()
@@ -277,14 +285,19 @@ func main() {
 				case ':':
 					cursor.IsActive = !cursor.IsActive
 
+					if !cursor.IsActive {
+						cursor.X = g.player.X
+						cursor.Y = g.player.Y
+					}
+
 				case '>':
-					r := (*current)[g.player.X][g.player.Y].GetRune()
+					r := (*current).GetCell(g.player.X, g.player.Y).GetRune()
 					if r == '>' {
 						g.floor++
 						g.screen.Clear()
 					}
 				case '<':
-					r := (*current)[g.player.X][g.player.Y].GetRune()
+					r := (*current).GetCell(g.player.X, g.player.Y).GetRune()
 					if r == '<' {
 						g.floor--
 						g.screen.Clear()
@@ -326,7 +339,7 @@ func main() {
 				g.screen.Clear()
 				g.screen.Sync()
 
-			case tc.KeyCtrlC, tc.KeyEscape:
+			case tc.KeyCtrlQ:
 				quit()
 
 			}
@@ -348,27 +361,30 @@ func main() {
 
 		if g.floor == 0 {
 			current = &g.dungeon[g.floor]
+			cursor.SetCurrentFloor(*current)
 			g.player.Floor = 0
 		} else if g.floor == 1 {
 			current = &g.dungeon[g.floor]
+			cursor.SetCurrentFloor(*current)
 			g.player.Floor = 1
 		}
 
-		for i := 0; i < 9; i++ {
-			for j := 0; j < 9; j++ {
+		for row := 0; row < 9; row++ {
+			for col := 0; col < 9; col++ {
+
 				var color tc.Style
 				var map_rune rune
 
-				if (*current)[i][j].Items != nil {
+				if (g.dungeon[g.floor]).GetCell(col, row).Items != nil {
 					// If there are items in the MapCell grab the first item's color and rune
-					color = (*current)[i][j].GetFirstItem().GetColor()
-					map_rune = (*current)[i][j].GetFirstItem().GetRune()
+					color = (g.dungeon[g.floor]).GetCell(col, row).GetFirstItem().GetColor()
+					map_rune = (g.dungeon[g.floor]).GetCell(col, row).GetFirstItem().GetRune()
 				} else {
-					color = (*current)[i][j].GetColor()
-					map_rune = (*current)[i][j].GetRune()
+					color = (g.dungeon[g.floor]).GetCell(col, row).GetColor()
+					map_rune = (g.dungeon[g.floor]).GetCell(col, row).GetRune()
 				}
 
-				ut.EmitStr(g.screen, i, j, color, string(map_rune))
+				ut.EmitStr(g.screen, col, row, color, string(map_rune))
 			}
 		}
 

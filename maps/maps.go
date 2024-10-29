@@ -47,8 +47,8 @@ func (mc *MapCell) GetFirstItem() *items.Item {
 	return &mc.Items[0]
 }
 
-func (mc *MapCell) GetItems() items.Items {
-	return mc.Items
+func (mc *MapCell) GetItems() *items.Items {
+	return &mc.Items
 }
 
 func (mc *MapCell) GetItemFromStack(index int) *items.Item {
