@@ -66,6 +66,13 @@ func (c *Cursor) Look() string {
 }
 
 func (c *Cursor) Move(x, y int) {
+	w := c.Current.GetWidth()
+	h := c.Current.GetHeight()
+
+	if c.X+x < 0 || c.Y+y < 0 || c.X+x >= w || c.Y+y >= h {
+		return
+	}
+
 	c.X += x
 	c.Y += y
 }
