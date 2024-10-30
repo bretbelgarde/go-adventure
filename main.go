@@ -41,10 +41,16 @@ func (c *Cursor) SetCurrentFloor(floor maps.Map) {
 	c.Current = &floor
 }
 
-func (c *Cursor) Look() string {
+func (c *Cursor) Look(a *actors.Actors) string {
 	var seen string
 	var selected *maps.MapCell
 	var items *items.Items
+	var actor_desc string
+	var item_desc string
+
+	actor := a.GetActorFromLocaion(c.X, c.Y)
+	actor_desc = ""
+	item_desc = ""
 
 	if c.X < 0 || c.Y < 0 || c.X >= c.Current.GetWidth() || c.Y >= c.Current.GetHeight() {
 		return "You don't see anything."
@@ -52,14 +58,18 @@ func (c *Cursor) Look() string {
 		selected = c.Current.GetCell(c.X, c.Y)
 		items = selected.GetItems()
 
-	}
+		if actor != nil {
+			actor_desc = actor.Type.GetDescription()
+		}
 
-	if len(*items) > 1 {
-		seen = selected.GetDescription() + " There is a stack of items on the ground here."
-	} else if len(*items) == 1 {
-		seen = selected.GetFirstItem().GetDescription()
-	} else {
-		seen = selected.GetDescription()
+		if len(*items) > 1 {
+			item_desc = "There is a stack of items on the ground here."
+		} else if len(*items) == 1 {
+			item_desc = selected.GetFirstItem().GetDescription()
+		}
+
+		seen = fmt.Sprintf("%s %s %s", actor_desc, item_desc, selected.GetDescription())
+
 	}
 
 	return seen
@@ -356,7 +366,7 @@ func main() {
 		}
 
 		if cursor.IsActive {
-			g.msg = cursor.Look()
+			g.msg = cursor.Look(&g.creatures)
 		}
 
 		// Process Event

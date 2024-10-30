@@ -9,6 +9,16 @@ import (
 
 type Actors []*Actor
 
+func (a *Actors) GetActorFromLocaion(x, y int) *Actor {
+	for _, actor := range *a {
+		if actor.X == x && actor.Y == y {
+			return actor
+		}
+	}
+
+	return nil
+}
+
 type ActorType interface {
 	GetRune() rune
 	GetHealth() int
