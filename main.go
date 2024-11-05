@@ -309,7 +309,6 @@ func main() {
 			cursor.SetCurrentFloor(p.Floor, g.dungeon[g.floor])
 			p.Floor = 0
 		} else if g.floor == 1 {
-			current = &g.dungeon[g.floor]
 			cursor.SetCurrentFloor(p.Floor, g.dungeon[g.floor])
 			p.Floor = 1
 		}
