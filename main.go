@@ -233,20 +233,20 @@ func main() {
 					if !cursor.IsActive {
 						cursor.X = p.X
 						cursor.Y = p.Y
-						cursor.SetCurrentFloor(p.Floor, *current)
+						cursor.SetCurrentFloor(p.Floor, g.dungeon[p.Floor])
 					}
 
 				case '>':
-					r := (*current).GetCell(p.X, p.Y).GetRune()
+					r := g.dungeon[g.floor].GetCell(p.X, p.Y).GetRune()
+
 					if r == '>' {
 						g.floor++
-						g.screen.Clear()
 					}
 				case '<':
-					r := (*current).GetCell(p.X, p.Y).GetRune()
+					r := g.dungeon[g.floor].GetCell(p.X, p.Y).GetRune()
+
 					if r == '<' {
 						g.floor--
-						g.screen.Clear()
 					}
 				}
 
@@ -313,8 +313,8 @@ func main() {
 			p.Floor = 1
 		}
 
-		for row := 0; row < 9; row++ {
-			for col := 0; col < 9; col++ {
+		for row := 0; row < g.dungeon[g.floor].GetWidth(); row++ {
+			for col := 0; col < g.dungeon[g.floor].GetHeight(); col++ {
 
 				var color tc.Style
 				var map_rune rune
