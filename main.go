@@ -203,7 +203,7 @@ func main() {
 
 	p := g.actors.GetActorFromID("player")
 
-	cursor := ui.NewCursor(p.X, p.Y, &g.dungeon[g.floor])
+	cursor := ui.NewCursor(p.X, p.Y, g.floor, &g.dungeon[g.floor])
 
 	quit := func() {
 		g.screen.Fini()
@@ -233,6 +233,7 @@ func main() {
 					if !cursor.IsActive {
 						cursor.X = p.X
 						cursor.Y = p.Y
+						cursor.SetCurrentFloor(p.Floor, *current)
 					}
 
 				case '>':
@@ -305,12 +306,11 @@ func main() {
 		}
 
 		if g.floor == 0 {
-			current = &g.dungeon[g.floor]
-			cursor.SetCurrentFloor(*current)
+			cursor.SetCurrentFloor(p.Floor, g.dungeon[g.floor])
 			p.Floor = 0
 		} else if g.floor == 1 {
 			current = &g.dungeon[g.floor]
-			cursor.SetCurrentFloor(*current)
+			cursor.SetCurrentFloor(p.Floor, g.dungeon[g.floor])
 			p.Floor = 1
 		}
 

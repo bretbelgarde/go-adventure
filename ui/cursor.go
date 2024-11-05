@@ -13,16 +13,18 @@ import (
 type Cursor struct {
 	X        int
 	Y        int
+	floor    int
 	Rune     rune
 	Color    tc.Style
 	IsActive bool
 	Current  *maps.Map
 }
 
-func NewCursor(x, y int, m *maps.Map) *Cursor {
+func NewCursor(x, y, f int, m *maps.Map) *Cursor {
 	return &Cursor{
 		X:        x,
 		Y:        y,
+		floor:    f,
 		Rune:     tc.RuneBlock,
 		Color:    tc.StyleDefault.Foreground(tc.ColorGray).Background(tc.ColorDarkGoldenrod),
 		Current:  m,
@@ -34,8 +36,9 @@ func (c *Cursor) Draw(s tc.Screen) {
 	ut.EmitStr(s, c.X, c.Y, c.Color, string(c.Rune))
 }
 
-func (c *Cursor) SetCurrentFloor(floor maps.Map) {
-	c.Current = &floor
+func (c *Cursor) SetCurrentFloor(f int, m maps.Map) {
+	c.Current = &m
+	c.floor = f
 }
 
 func (c *Cursor) SetRune(r rune) {
@@ -71,7 +74,7 @@ func (c *Cursor) Look(a *actors.Actors) string {
 			current_rune = selected.GetFirstItem().GetRune()
 		}
 
-		if actor != nil {
+		if actor != nil && actor.Floor == c.floor {
 			actor_desc = actor.Type.GetDescription()
 			current_rune = actor.Type.GetRune()
 		}
