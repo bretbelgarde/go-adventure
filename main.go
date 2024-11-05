@@ -15,13 +15,12 @@ import (
 )
 
 type Game struct {
-	screen    tc.Screen
-	debug     bool
-	msg       string
-	floor     int
-	dungeon   maps.Floors
-	player    *actors.Actor
-	creatures actors.Actors
+	screen  tc.Screen
+	debug   bool
+	msg     string
+	floor   int
+	dungeon maps.Floors
+	actors  actors.Actors
 }
 
 func (g *Game) Init() {
@@ -45,13 +44,14 @@ func (g *Game) Init() {
 
 func (g *Game) HandleMovement(current *maps.Map, x, y int) {
 	// There may be a more graceful way to do this, but this will do for now
-	origx, origy, _ := g.player.GetLocation()
-	g.player.Move(*current, x, y)
-	newx, newy, _ := g.player.GetLocation()
+	p := g.actors.GetActorFromID("player")
+	origx, origy, _ := p.GetLocation()
+	p.Move(*current, x, y)
+	newx, newy, _ := p.GetLocation()
 
 	if newx != origx || newy != origy {
-		for _, c := range g.creatures {
-			if c.Floor == g.player.Floor {
+		for _, c := range g.actors {
+			if c.Floor == p.Floor && c.ID != "player" {
 				c.Wander(*current, g.floor)
 			}
 		}
@@ -189,20 +189,21 @@ func main() {
 
 	g.screen.Clear()
 
-	g.player = actors.NewActor(2, 2, 0, white, &player.Player{Rune: '@', Health: 10, Description: "Player"})
-
-	g.creatures = append(
-		g.creatures,
-		actors.NewActor(2, 6, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves straw"}),
-		actors.NewActor(3, 6, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves sticks"}),
-		actors.NewActor(4, 6, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves bricks"}),
-		actors.NewActor(4, 3, 1, white, &cr.Rat{Rune: 'r', Health: 10, Description: "Lab Rat"}),
-		actors.NewActor(4, 5, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "You Dirty Rat"}),
-		actors.NewActor(3, 4, 1, white, &cr.Rat{Rune: 'r', Health: 10, Description: "Ratt *Plays Guitar Riff*"}),
-		actors.NewActor(5, 4, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "Rat-tatooee"}),
+	g.actors = append(
+		g.actors,
+		actors.NewActor("player", 2, 2, 0, white, &player.Player{Rune: '@', Health: 10, Description: "Player"}),
+		actors.NewActor("pig_1", 2, 6, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves straw"}),
+		actors.NewActor("pig_2", 3, 6, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves sticks"}),
+		actors.NewActor("pig_3", 4, 6, 0, pink, &cr.Pig{Rune: 'p', Health: 5, Description: "A Pig who loves bricks"}),
+		actors.NewActor("rat_1", 4, 3, 1, white, &cr.Rat{Rune: 'r', Health: 10, Description: "Lab Rat"}),
+		actors.NewActor("rat_2", 4, 5, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "You Dirty Rat"}),
+		actors.NewActor("rat_3", 3, 4, 1, white, &cr.Rat{Rune: 'r', Health: 10, Description: "Ratt *Plays Guitar Riff*"}),
+		actors.NewActor("rat_4", 5, 4, 1, brown, &cr.Rat{Rune: 'r', Health: 10, Description: "Rat-tatooee"}),
 	)
 
-	cursor := ui.NewCursor(g.player.X, g.player.Y, &g.dungeon[g.floor])
+	p := g.actors.GetActorFromID("player")
+
+	cursor := ui.NewCursor(p.X, p.Y, &g.dungeon[g.floor])
 
 	quit := func() {
 		g.screen.Fini()
@@ -230,18 +231,18 @@ func main() {
 					cursor.IsActive = !cursor.IsActive
 
 					if !cursor.IsActive {
-						cursor.X = g.player.X
-						cursor.Y = g.player.Y
+						cursor.X = p.X
+						cursor.Y = p.Y
 					}
 
 				case '>':
-					r := (*current).GetCell(g.player.X, g.player.Y).GetRune()
+					r := (*current).GetCell(p.X, p.Y).GetRune()
 					if r == '>' {
 						g.floor++
 						g.screen.Clear()
 					}
 				case '<':
-					r := (*current).GetCell(g.player.X, g.player.Y).GetRune()
+					r := (*current).GetCell(p.X, p.Y).GetRune()
 					if r == '<' {
 						g.floor--
 						g.screen.Clear()
@@ -293,11 +294,11 @@ func main() {
 		}
 
 		if cursor.IsActive {
-			g.msg = cursor.Look(&g.creatures)
+			g.msg = cursor.Look(&g.actors)
 		}
 
 		// Process Event
-		dbg := fmt.Sprintf("player floor: %d x: %d y: %d", g.player.Floor, g.player.X, g.player.Y)
+		dbg := fmt.Sprintf("player floor: %d x: %d y: %d", p.Floor, p.X, p.Y)
 
 		if g.debug {
 			ut.EmitStr(g.screen, 20, 1, white, dbg)
@@ -306,11 +307,11 @@ func main() {
 		if g.floor == 0 {
 			current = &g.dungeon[g.floor]
 			cursor.SetCurrentFloor(*current)
-			g.player.Floor = 0
+			p.Floor = 0
 		} else if g.floor == 1 {
 			current = &g.dungeon[g.floor]
 			cursor.SetCurrentFloor(*current)
-			g.player.Floor = 1
+			p.Floor = 1
 		}
 
 		for row := 0; row < 9; row++ {
@@ -332,13 +333,13 @@ func main() {
 			}
 		}
 
-		for _, c := range g.creatures {
-			if c.Floor == g.player.Floor {
+		for _, c := range g.actors {
+			if c.ID != "player" && c.Floor == p.Floor {
 				c.Draw(g.screen, g.floor)
 			}
 		}
 
-		g.player.Draw(g.screen, g.floor)
+		p.Draw(g.screen, g.floor)
 
 		if cursor.IsActive {
 			cursor.Draw(g.screen)

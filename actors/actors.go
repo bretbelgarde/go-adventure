@@ -19,6 +19,16 @@ func (a *Actors) GetActorFromLocaion(x, y int) *Actor {
 	return nil
 }
 
+func (a *Actors) GetActorFromID(id string) *Actor {
+	for _, actor := range *a {
+		if actor.ID == id {
+			return actor
+		}
+	}
+
+	return nil
+}
+
 type ActorType interface {
 	GetRune() rune
 	GetHealth() int
@@ -80,8 +90,9 @@ func (a *Actor) GetLocation() (x, y, z int) {
 	return a.X, a.Y, a.Floor
 }
 
-func NewActor(x, y, floor int, color tc.Style, actor ActorType) *Actor {
+func NewActor(id string, x, y, floor int, color tc.Style, actor ActorType) *Actor {
 	return &Actor{
+		ID:    id,
 		X:     x,
 		Y:     y,
 		Floor: floor,
