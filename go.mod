@@ -3,6 +3,7 @@ module bretbelgarde.com/adventure
 go 1.23.0
 
 require (
+	github.com/andygeiss/ecs v0.3.12
 	github.com/gdamore/tcell/v2 v2.7.1
 	github.com/mattn/go-runewidth v0.0.15
 )
